@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <title>実力テスト 第1回 (20問)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <nav class="container mx-auto p-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-green-700">実力テスト 第1回 (20問)</h1>
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 hover:underline">&laquo; トップページに戻る</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6 max-w-3xl">
+        
+        <!-- スコア表示エリア -->
+        <div id="score-container" class="mb-6 p-4 text-2xl font-bold text-center text-gray-800 bg-white rounded-lg shadow-md" style="display: none;">
+            <!-- スコアはここに表示されます -->
+        </div>
+
+        <div id="questions-container" class="space-y-6">
+            <!-- テスト問題はここに動的に読み込まれます -->
+        </div>
+
+        <!-- 採点ボタン -->
+        <div class="mt-10 text-center">
+            <button id="grade-button" class="bg-green-600 text-white font-bold text-lg py-3 px-8 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300">
+                採点する
+            </button>
+        </div>
+
+        <div class="mt-10 text-center">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 hover:underline">&laquo; トップページに戻る</a>
+        </div>
+    </main>
+
+    <script>
+        // 実力テスト 第1回 データ
+        const testQuestions = [
+            { "type": "multiple_choice", "question": "情報セキュリティの3大要素として、正しくない組み合わせはどれか。", "options": ["機密性、完全性、可用性", "Confidentiality, Integrity, Availability", "機密性、完全性、信頼性", "C, I, A"], "answer": 2 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの3階層は、基本方針、対策基準、$____$ である。", "keywords": ["実施手順", "プロシージャー"] },
+            { "type": "multiple_choice", "question": "脆弱性が発見されてから修正パッチが適用されるまでの、無防備な期間を狙う攻撃は何か。", "options": ["デイワン攻撃", "DoS攻撃", "ゼロデイ攻撃", "セッションハイジャック"], "answer": 2 },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの「対策基準」の別名として正しいものはどれか。", "options": ["ポリシー", "スタンダード", "プロシージャー", "ガイドライン"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "許可されていない人物が情報にアクセスできないようにすることを $____$ と呼ぶ。", "keywords": ["機密性", "Confidentiality"] },
+            { "type": "multiple_choice", "question": "Webアプリケーションを通じて、サーバー上で不正にOSコマンドを実行させる攻撃は何か。", "options": ["OSコマンドインジェクション", "セッションハイジャック", "DoS攻撃", "ゼロデイ攻撃"], "answer": 0 },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素のうち、「Integrity」が示すものはどれか。", "options": ["機密性", "完全性", "可用性", "国際性"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "他人のセッションIDを悪用し、なりすましの通信を行う攻撃を $____$ と呼ぶ。", "keywords": ["セッションハイジャック"] },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの3階層のうち、「How」に相当するものはどれか。", "options": ["基本方針", "対策基準", "実施手順", "組織体制"], "answer": 2 },
+            { "type": "multiple_choice", "question": "大量のデータを送りつけ、サービスを停止させることを目的とした攻撃は何か。", "options": ["セッションハイジャック", "ゼロデイ攻撃", "DoS攻撃", "OSコマンドインジェクション"], "answer": 2 },
+            { "type": "fill_in_the_blank", "question": "情報が常に正しく、最新の状態に保たれていることを $____$ と呼ぶ。", "keywords": ["完全性", "Integrity"] },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの「基本方針」に関する記述として、誤っているものはどれか。", "options": ["組織のトップが情報セキュリティを重視している姿勢を示す。", "「Why」に相当する。", "組織全体の方針であり、通常1つにまとめられる。", "「How」に相当し、具体的な作業手順を定める。"], "answer": 3 },
+            { "type": "fill_in_the_blank", "question": "必要な時にいつでも情報やシステムが利用できる状態を $____$ と呼ぶ。", "keywords": ["可用性", "Availability"] },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素 (CIA) の「A」は何の略か。", "options": ["Authentication (認証)", "Authorization (認可)", "Availability (可用性)", "Audit (監査)"], "answer": 2 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの階層構造で、「スタンダード」と呼ばれるのは $____$ である。", "keywords": ["対策基準"] },
+            { "type": "multiple_choice", "question": "「OSコマンドインジェクション」に関する記述として、最も適当なものはどれか。", "options": ["他人のセッションIDを推測したり窃取したりする攻撃。", "Webアプリケーションを通じて、Webサーバ上でOSコマンドを不正に実行させる攻撃。", "修正プログラムが提供される前に、セキュリティホールを突く攻撃。", "大量のパケットを送りつけ、サービスを妨害する攻撃。"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "ゼロデイ攻撃は、セキュリティの $____$ を悪用する攻撃である。", "keywords": ["脆弱性", "ぜい弱性", "セキュリティホール", "ホール"] },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素 (CIA) の「C」は何の略か。", "options": ["Confidentiality (機密性)", "Completeness (完全性)", "Correctness (正確性)", "Control (統制)"], "answer": 0 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの階層構造で、「ポリシー」と呼ばれるのは $____$ である。", "keywords": ["基本方針"] },
+            { "type": "multiple_choice", "question": "「セッションハイジャック」の説明として正しいものはどれか。", "options": ["サービスを妨害する攻撃。", "OSコマンドを不正に実行させる攻撃。", "修正プログラム提供前に脆弱性を突く攻撃。", "他人のセッション情報を盗み、なりすます攻撃。"], "answer": 3 }
+        ];
+
+        /**
+         * 簡易的なLaTeX表記をプレーンテキスト/記号に変換する
+         */
+        function renderLatex(text) {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/\$(.*?)\$/g, '$1') // $...$ を除去
+                .replace(/\\lambda/g, 'λ')   // \lambda -> λ
+                .replace(/\\pi/g, 'π')       // \pi -> π
+                .replace(/\\times/g, '×');    // \times -> ×
+        }
+
+        /**
+         * テスト問題をページに読み込む
+         */
+        function loadTestQuestions() {
+            const container = document.getElementById('questions-container');
+            if (!container) return;
+
+            testQuestions.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.id = `question-card-${index}`;
+                questionCard.className = 'bg-white p-6 rounded-lg shadow-md border-2 border-transparent';
+
+                // 問題文
+                const questionText = document.createElement('p');
+                questionText.className = 'text-lg font-semibold mb-4';
+                questionText.innerHTML = `<strong>問 ${index + 1}:</strong> ${renderLatex(q.question)}`;
+                questionCard.appendChild(questionText);
+
+                // 解答欄
+                if (q.type === 'multiple_choice') {
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'space-y-3 mb-4';
+                    q.options.forEach((option, i) => {
+                        const label = document.createElement('label');
+                        label.className = 'block p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer';
+                        
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `q${index}`;
+                        radio.value = i;
+                        radio.className = 'mr-3';
+
+                        label.appendChild(radio);
+                        label.appendChild(document.createTextNode(renderLatex(option)));
+                        optionsDiv.appendChild(label);
+                    });
+                    questionCard.appendChild(optionsDiv);
+                } else if (q.type === 'fill_in_the_blank') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `q${index}`;
+                    input.className = 'w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    input.placeholder = '解答を入力してください';
+                    questionCard.appendChild(input);
+                }
+                
+                // 解答表示エリア（採点後に表示）
+                const answerDisplay = document.createElement('div');
+                answerDisplay.id = `answer-display-${index}`;
+                answerDisplay.className = 'hidden mt-4 p-3 bg-gray-50 border-t border-gray-200';
+                questionCard.appendChild(answerDisplay);
+
+                container.appendChild(questionCard);
+            });
+        }
+
+        /**
+         * テストを採点する
+         */
+        function gradeTest() {
+            let score = 0;
+            const scoreContainer = document.getElementById('score-container');
+            
+            testQuestions.forEach((q, index) => {
+                const card = document.getElementById(`question-card-${index}`);
+                const answerDisplay = document.getElementById(`answer-display-${index}`);
+                let isCorrect = false;
+
+                if (q.type === 'multiple_choice') {
+                    const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                    if (selected && parseInt(selected.value) === q.answer) {
+                        isCorrect = true;
+                    }
+                    answerDisplay.innerHTML = `<span class="font-bold">正解:</span> ${renderLatex(q.options[q.answer])}`;
+                } else if (q.type === 'fill_in_the_blank') {
+                    const userInput = document.getElementById(`q${index}`).value.trim();
+                    const convertedKeywords = q.keywords.map(k => renderLatex(k));
+                    
+                    for (const keyword of convertedKeywords) {
+                        if (userInput.includes(keyword)) {
+                            isCorrect = true;
+                            break;
+                        }
+                    }
+                    answerDisplay.innerHTML = `<span class="font-bold">正解キーワード:</span> ${convertedKeywords.join(', ')}`;
+                }
+
+                // 正解・不正解のスタイル適用
+                if (isCorrect) {
+                    score++;
+                    card.classList.remove('border-transparent', 'border-red-500');
+                    card.classList.add('border-green-500');
+                } else {
+                    card.classList.remove('border-transparent', 'border-green-500');
+                    card.classList.add('border-red-500');
+                }
+                
+                answerDisplay.classList.remove('hidden');
+            });
+
+            // スコア表示
+            scoreContainer.innerHTML = `あなたのスコア: ${score} / ${testQuestions.length} 点`;
+            scoreContainer.style.display = 'block';
+
+            // スコア表示エリアまでスクロール
+            scoreContainer.scrollIntoView({ behavior: 'smooth' });
+
+            // 採点ボタンを非表示にする
+            document.getElementById('grade-button').style.display = 'none';
+        }
+
+        // ページ読み込み時に問題をロード
+        document.addEventListener('DOMContentLoaded', loadTestQuestions);
+        // 採点ボタンにイベントリスナーを設定
+        document.getElementById('grade-button').addEventListener('click', gradeTest);
+
+    </script>
+</body>
+</html>

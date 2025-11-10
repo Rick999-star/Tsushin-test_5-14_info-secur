@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>練習問題 (30問)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <nav class="container mx-auto p-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-700">練習問題 (30問)</h1>
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 hover:underline">&laquo; トップページに戻る</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6 max-w-3xl">
+        <div id="questions-container" class="space-y-6">
+            <!-- 練習問題はここに動的に読み込まれます -->
+        </div>
+
+        <div class="mt-10 text-center">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 hover:underline">&laquo; トップページに戻る</a>
+        </div>
+    </main>
+
+    <script>
+        // 練習問題データ (JSONからコピー)
+        const practiceQuestions = [
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの3階層構造に含まれないものは、次のうちどれか。", "options": ["基本方針 (ポリシー)", "対策基準 (スタンダード)", "実施手順 (プロシージャー)", "監査報告 (レポート)"], "answer": 3 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティの3要素 (CIA) の「C」は $____$ を意味する。", "keywords": ["機密性", "Confidentiality"] },
+            { "type": "multiple_choice", "question": "ソフトウェアの脆弱性に対する修正プログラムが提供される前に、その脆弱性を突く攻撃を何と呼ぶか。", "options": ["DoS攻撃", "セッションハイジャック", "ゼロデイ攻撃", "OSコマンドインジェクション"], "answer": 2 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの階層構造において、「What（何を実施すべきか）」を具体的に記述したものは $____$ と呼ばれる。", "keywords": ["対策基準", "スタンダード"] },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素のうち、「情報が正しく、改ざんされていないこと」を保証する性質はどれか。", "options": ["機密性 (Confidentiality)", "完全性 (Integrity)", "可用性 (Availability)", "信頼性 (Reliability)"], "answer": 1 },
+            { "type": "multiple_choice", "question": "ターゲットのサーバーに過剰なトラフィックを送り込み、サービスを利用不能にする攻撃はどれか。", "options": ["セッションハイジャック", "DoS攻撃", "ゼロデイ攻撃", "OSコマンドインジェクション"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの階層構造において、「How（どのように実施するか）」を記述したマニュアル的な文書は $____$ と呼ばれる。", "keywords": ["実施手順", "プロシージャー"] },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素のうち、「必要な時に情報やシステムにアクセスできること」を保証する性質はどれか。", "options": ["機密性 (Confidentiality)", "完全性 (Integrity)", "可用性 (Availability)", "保守性 (Maintainability)"], "answer": 2 },
+            { "type": "multiple_choice", "question": "攻撃者が他人のセッションIDを盗み、そのユーザーになりすましてシステムにアクセスする攻撃はどれか。", "options": ["ゼロデイ攻撃", "DoS攻撃", "OSコマンドインジェクション", "セッションハイジャック"], "answer": 3 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの最上位に位置し、経営層が組織の姿勢を社内外に宣言するものを $____$ という。", "keywords": ["基本方針", "ポリシー"] },
+            { "type": "multiple_choice", "question": "Webアプリケーションの脆弱性を利用し、サーバー上で意図しないOSコマンドを実行させる攻撃はどれか。", "options": ["OSコマンドインジェクション", "セッションハイジャック", "ゼロデイ攻撃", "DoS攻撃"], "answer": 0 },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素 (CIA) の「I」が示すものはどれか。", "options": ["機密性 (Confidentiality)", "完全性 (Integrity)", "可用性 (Availability)", "独立性 (Independence)"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "ゼロデイ攻撃は、脆弱性に対する $____$ が開発される前の「無防備な期間」を狙って行われる。", "keywords": ["修正プログラム", "パッチ", "修正パッチ", "対策ソフト"] },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの「基本方針」に関する記述として、望ましいものはどれか。", "options": ["組織全体の方針を示すため、通常1つにまとめられる。", "詳細な手順を記述するため、部門ごとに作成される。", "技術的な内容が中心となるため、社外には非公開とされる。", "「How」に該当し、マニュアルとして機能する。"], "answer": 0 },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素 (CIA) の「A」が示すものはどれか。", "options": ["機密性 (Confidentiality)", "完全性 (Integrity)", "可用性 (Availability)", "認証 (Authentication)"], "answer": 2 },
+            { "type": "fill_in_the_blank", "question": "許可された人だけが情報にアクセスできるようにすることを $____$ という。", "keywords": ["機密性", "Confidentiality"] },
+            { "type": "multiple_choice", "question": "Cookieの盗難を通じて行われる攻撃として、最も関連性が高いものはどれか。", "options": ["DoS攻撃", "セッションハイジャック", "ゼロデイ攻撃", "SQLインジェクション"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティの3要素は、機密性、完全性、$____$ である。", "keywords": ["可用性", "Availability"] },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの3階層のうち、「スタンダード」とも呼ばれるものはどれか。", "options": ["基本方針", "対策基準", "実施手順", "運用体制"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "複数のコンピュータを踏み台にして行われるDoS攻撃を、特に $____$ 攻撃と呼ぶ。", "keywords": ["DDoS", "分散DoS"] },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの3階層のうち、「ポリシー」とも呼ばれるものはどれか。", "options": ["基本方針", "対策基準", "実施手順", "運用体制"], "answer": 0 },
+            { "type": "multiple_choice", "question": "情報セキュリティの3要素 (CIA) のうち、銀行口座の残高が勝手に変更されないこと、に関連が深いのはどれか。", "options": ["機密性", "完全性", "可用性", "真正性"], "answer": 1 },
+            { "type": "fill_in_the_blank", "question": "情報セキュリティポリシーの3階層のうち、「プロシージャー」とも呼ばれるものは $____$ である。", "keywords": ["実施手順"] },
+            { "type": "multiple_choice", "question": "「ゼロデイ攻撃」に関する記述として、最も適当なものはどれか。", "options": ["標的のサーバーに大量のパケットを送り、サービスを妨害する攻撃。", "他人のセッションIDを窃取し、なりすましの通信を行う攻撃。", "Webサーバ上でOSコマンドを不正に実行させる攻撃。", "ソフトウェアの修正プログラムが提供される前に、その脆弱性を突く攻撃。"], "answer": 3 },
+            { "type": "fill_in_the_blank", "question": "情報が勝手に変わったり、破壊されたりしないように保たれている性質を $____$ と呼ぶ。", "keywords": ["完全性", "Integrity"] },
+            { "type": "multiple_choice", "question": "情報セキュリティポリシーの3階層のうち、「Why（なぜ）」に相当するものはどれか。", "options": ["基本方針", "対策基準", "実施手順", "セキュリティ体制図"], "answer": 0 },
+            { "type": "fill_in_the_blank", "question": "必要な時にシステムや情報が利用可能である状態を保つ性質を $____$ と呼ぶ。", "keywords": ["可用性", "Availability"] },
+            { "type": "multiple_choice", "question": "「DoS攻撃」に関する記述として、最も適当なものはどれか。", "options": ["標的のサーバーに大量のパケットを送り、サービスを妨害する攻撃。", "他人のセッションIDを窃取し、なりすましの通信を行う攻撃。", "Webサーバ上でOSコマンドを不正に実行させる攻撃。", "ソフトウェアの修正プログラムが提供される前に、その脆弱性を突く攻撃。"], "answer": 0 },
+            { "type": "fill_in_the_blank", "question": "OSコマンドインジェクションは、Webアプリケーションが受け取った入力データの $____$ が不十分な場合に発生する可能性がある。", "keywords": ["検証", "チェック", "サニタイズ"] },
+            { "type": "multiple_choice", "question": "「セッションハイジャック」に関する記述として、最も適当なものはどれか。", "options": ["標的のサーバーに大量のパケットを送り、サービスを妨害する攻撃。", "他人のセッションIDを窃取し、なりすましの通信を行う攻撃。", "Webサーバ上でOSコマンドを不正に実行させる攻撃。", "ソフトウェアの修正プログラムが提供される前に、その脆弱性を突く攻撃。"], "answer": 1 }
+        ];
+
+        /**
+         * 簡易的なLaTeX表記をプレーンテキスト/記号に変換する
+         * @param {string} text 変換対象の文字列
+         * @returns {string} 変換後の文字列
+         */
+        function renderLatex(text) {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/\$(.*?)\$/g, '$1') // $...$ を除去
+                .replace(/\\lambda/g, 'λ')   // \lambda -> λ
+                .replace(/\\pi/g, 'π')       // \pi -> π
+                .replace(/\\times/g, '×');    // \times -> ×
+        }
+
+        /**
+         * 解答・解説の表示をトグルする
+         * @param {HTMLElement} button トグルボタン
+         */
+        function toggleAnswer(button) {
+            const answerDiv = button.nextElementSibling;
+            const isHidden = answerDiv.classList.contains('hidden');
+            
+            if (isHidden) {
+                answerDiv.classList.remove('hidden');
+                button.textContent = '解答・解説を隠す';
+                button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                button.classList.add('bg-gray-500', 'hover:bg-gray-600');
+            } else {
+                answerDiv.classList.add('hidden');
+                button.textContent = '解答・解説を表示';
+                button.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            }
+        }
+
+        /**
+         * 練習問題をページに読み込む
+         */
+        function loadPracticeQuestions() {
+            const container = document.getElementById('questions-container');
+            if (!container) return;
+
+            // 練習問題は30問すべて4択と仮定して処理する
+            // JSONデータに基づき、4択のみを対象とする
+            const multipleChoiceQuestions = practiceQuestions.filter(q => q.type === 'multiple_choice');
+
+            multipleChoiceQuestions.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'bg-white p-6 rounded-lg shadow-md';
+
+                // 問題文
+                const questionText = document.createElement('p');
+                questionText.className = 'text-lg font-semibold mb-4';
+                questionText.innerHTML = `<strong>問 ${index + 1}:</strong> ${renderLatex(q.question)}`;
+                questionCard.appendChild(questionText);
+
+                // 選択肢
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'space-y-3 mb-4';
+                q.options.forEach((option, i) => {
+                    const label = document.createElement('label');
+                    label.className = 'block p-3 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer';
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `q${index}`;
+                    radio.value = i;
+                    radio.className = 'mr-3';
+
+                    label.appendChild(radio);
+                    label.appendChild(document.createTextNode(renderLatex(option)));
+                    optionsDiv.appendChild(label);
+                });
+                questionCard.appendChild(optionsDiv);
+
+                // 解答・解説ボタン
+                const toggleButton = document.createElement('button');
+                toggleButton.textContent = '解答・解説を表示';
+                toggleButton.className = 'bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors';
+                toggleButton.onclick = () => toggleAnswer(toggleButton);
+                questionCard.appendChild(toggleButton);
+
+                // 解答・解説エリア（初期状態は非表示）
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'hidden mt-4 p-4 bg-gray-50 border-l-4 border-blue-400 rounded-md';
+                answerDiv.innerHTML = `
+                    <p class="font-bold">正解:</p>
+                    <p>${renderLatex(q.options[q.answer])}</p>
+                `;
+                questionCard.appendChild(answerDiv);
+
+                container.appendChild(questionCard);
+            });
+        }
+
+        // ページ読み込み時に問題をロード
+        document.addEventListener('DOMContentLoaded', loadPracticeQuestions);
+
+    </script>
+</body>
+</html>
