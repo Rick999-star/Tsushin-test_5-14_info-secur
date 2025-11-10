@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>実力テスト 第2回 - 伝送線路</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .border-green-500 { border-color: #22c55e; }
+        .border-red-500 { border-color: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-3xl">
+        <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">
+            実力テスト 第2回 (20問)
+        </h1>
+
+        <!-- スコア表示エリア -->
+        <div id="score-container" class="mb-6"></div>
+
+        <main id="quiz-container" class="space-y-6">
+            <!-- テスト問題はここにJavaScriptによって挿入されます -->
+        </main>
+
+        <div class="mt-8 text-center">
+            <button id="submit-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
+                採点する
+            </button>
+        </div>
+
+        <div class="mt-12 text-center">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 hover:underline">
+                トップページに戻る
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 実力テスト 第2回 データ
+        const testQuestions = [
+            {
+                "questionType": "multiple-choice",
+                "questionText": "同軸ケーブル「S-5C-FB」の「FB」が示すものは何か。",
+                "options": [
+                    { "text": "絶縁体が発泡ポリエチレン(F)で、太い(Big)タイプである。", "isCorrect": false, "rationale": "「B」は太い(Big)ではなく、編組(Braid)を意味します。" },
+                    { "text": "絶縁体が発泡ポリエチレン(F)で、外部導体が編組(Braid)である。", "isCorrect": true, "rationale": "「F」は絶縁体（発泡ポリエチレン）、「B」は外部導体（アルミ箔＋編組）を示します。厳密には「F」は絶縁体、「B」は外部導体の構造（アルミ箔＋編組）です。" },
+                    { "text": "特性インピーダンスが50Ω(F)で、BS対応(B)である。", "isCorrect": false, "rationale": "特性インピーダンス50Ωは「D」、BS対応（衛星放送）は「S」です。" },
+                    { "text": "周波数(Frequency)特性が良く、放送(Broadcast)用である。", "isCorrect": false, "rationale": "これらは規格記号の直接の意味ではありません。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "光ファイバケーブルは、信号を [　] で伝送するため、電磁誘導ノイズの影響をほとんど受けません。",
+                "correctAnswers": ["光", "ひかり"],
+                "rationale": "光ファイバは電気信号ではなく、光信号を伝送します。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "LANケーブルの「UTP」と「STP」の最大の違いは何か。",
+                "options": [
+                    { "text": "伝送速度", "isCorrect": false, "rationale": "どちらもカテゴリが同じであれば同じ伝送速度をサポートします。" },
+                    { "text": "シールド処理の有無", "isCorrect": true, "rationale": "STP (Shielded) はシールドがあり、UTP (Unshielded) はシールドがありません。" },
+                    { "text": "中心導体の材質", "isCorrect": false, "rationale": "どちらも通常は銅線を使用します。" },
+                    { "text": "使用するコネクタの形状", "isCorrect": false, "rationale": "どちらも一般的にRJ-45コネクタを使用します。" }
+                ]
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "同軸ケーブルの記号「5D-2V」に関する記述として正しいものはどれか。",
+                "options": [
+                    { "text": "特性インピーダンスは75Ωである。", "isCorrect": false, "rationale": "「D」は特性インピーダンス50Ωを示します。" },
+                    { "text": "絶縁体は発泡ポリエチレンである。", "isCorrect": false, "rationale": "「2」は絶縁体ポリエチレンを示します。" },
+                    { "text": "特性インピーダンスは50Ωで、絶縁体はポリエチレンである。", "isCorrect": true, "rationale": "「D」は50Ω、「2」はポリエチレンを示します。" },
+                    { "text": "外部導体の内径は約2mmである。", "isCorrect": false, "rationale": "外部導体の内径は約「5」mmです。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "伝送線路の特性インピーダンス $Z_0$ と負荷のインピーダンス $Z_r$ が異なるとき、接続点で [　] が発生する。",
+                "correctAnswers": ["反射波", "反射", "はんしゃは"],
+                "rationale": "インピーダンスの不整合 ($Z_0 \\ne Z_r$) により、反射波が発生します。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "同軸ケーブル「S-5C-FB」の「C」が示す特性インピーダンスの値はいくつか。",
+                "options": [
+                    { "text": "50Ω", "isCorrect": false, "rationale": "50Ωは「D」で示されます。" },
+                    { "text": "75Ω", "isCorrect": true, "rationale": "「C」は特性インピーダンス75Ωを示します。" },
+                    { "text": "100Ω", "isCorrect": false, "rationale": "100Ωはツイストペアケーブルなどで見られます。" },
+                    { "text": "5Ω", "isCorrect": false, "rationale": "「5」は外部導体の概略内径を示します。" }
+                ]
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "「S-5C-FB」の「中心導体（心線）」の主な役割は何か。",
+                "options": [
+                    { "text": "信号を流す役割", "isCorrect": true, "rationale": "中心導体は信号伝送のコアとなる部分です。" },
+                    { "text": "外からのノイズを防ぐ役割", "isCorrect": false, "rationale": "ノイズを防ぐのは外部導体（アルミ箔や編組）の役割です。" },
+                    { "text": "絶縁する役割", "isCorrect": false, "rationale": "絶縁は内部絶縁体が担います。" },
+                    { "text": "ケーブルを補強する役割", "isCorrect": false, "rationale": "ケーブルの補強は主に外被が担います。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "「S-5C-FB」の「外部導体（アルミ箔・編組）」の主な役割は、外からの [　] を防ぐことです。",
+                "correctAnswers": ["ノイズ", "のいず", "雑音", "ざつおん", "干渉", "かんしょう"],
+                "rationale": "外部導体はシールドとして機能し、外部からのノイズ（電磁干渉）を防ぎます。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "「5C-2V」の「2」が示す絶縁体の材質は何か。",
+                "options": [
+                    { "text": "発泡ポリエチレン", "isCorrect": false, "rationale": "発泡ポリエチレンは「F」で示されます。" },
+                    { "text": "ポリエチレン", "isCorrect": true, "rationale": "「2」はポリエチレンを示します。" },
+                    { "text": "アルミ箔", "isCorrect": false, "rationale": "アルミ箔は外部導体（シールド）の一部です。" },
+                    { "text": "ビニル", "isCorrect": false, "rationale": "「V」は外部導体（編組）を示しますが、外被がビニル（PVC）であることは多いです。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "定在波において、振幅がゼロになる点を [　] という。",
+                "correctAnswers": ["節", "ふし", "せつ"],
+                "rationale": "振幅がゼロの点は「節（ふし、または、せつ）」です。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "同軸ケーブル「5C-FB」と「5D-FB」の最も大きな違いは何か。",
+                "options": [
+                    { "text": "シールド構造", "isCorrect": false, "rationale": "どちらも「FB」なのでシールド構造は同じ（アルミ箔＋編組）です。" },
+                    { "text": "特性インピーダンス", "isCorrect": true, "rationale": "「C」は75Ω、「D」は50Ωを示し、これが最も大きな違いです。" },
+                    { "text": "絶縁体の材質", "isCorrect": false, "rationale": "どちらも「F」なので絶縁体は発泡ポリエチレンです。" },
+                    { "text": "外部導体の内径", "isCorrect": false, "rationale": "どちらも「5」なので外部導体の内径は約5mmです。" }
+                ]
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "ツイストペアケーブル（撚り対線）に関する記述として、最も適当なものはどれか。",
+                "options": [
+                    { "text": "STPはシールドがないため、ノイズに弱い。", "isCorrect": false, "rationale": "STP (Shielded) はシールドがあるためノイズに強いです。シールドがないのはUTPです。" },
+                    { "text": "UTPはシールドがないため、柔らかく曲げやすい。", "isCorrect": true, "rationale": "UTP (Unshielded) はシールドがない分、柔軟で施工がしやすいです。" },
+                    { "text": "STPは光信号を伝送するために使われる。", "isCorrect": false, "rationale": "STPは電気信号を伝送します。光信号は光ファイバです。" },
+                    { "text": "UTPは10BASE2規格で主に使用された。", "isCorrect": false, "rationale": "10BASE2は同軸ケーブルを使用しました。UTPは10BASE-Tなどです。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "同軸ケーブルの記号「3C-2V」の「3」は、外部導体の概略 [　] (mm) を示す。",
+                "correctAnswers": ["内径", "ないけい"],
+                "rationale": "最初の数字は、外部導体の概略内径をmm単位で示します。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "「S-5C-FBL」は3重シールド構成である。「S-5C-FB」のシールド構成はどれか。",
+                "options": [
+                    { "text": "シールドなし", "isCorrect": false, "rationale": "「FB」という記号はシールド構造を示しています。" },
+                    { "text": "1重シールド（編組のみ）", "isCorrect": false, "rationale": "1重シールド（編組）は「V」で示されます。" },
+                    { "text": "2重シールド（アルミ箔＋編組）", "isCorrect": true, "rationale": "「FB」は Foil (アルミ箔) と Braid (編組) による2重シールドを示します。" },
+                    { "text": "3重シールド", "isCorrect": false, "rationale": "3重シールドは「FBL」などで示されます。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "伝送線路のインピーダンス [　] が行われていないと、信号の反射が起こり、伝送品質が劣化する。",
+                "correctAnswers": ["整合", "せいごう", "マッチング"],
+                "rationale": "インピーダンスを合わせること（整合、マッチング）が重要です。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "高周波伝送路に関する記述として、適当で「ない」ものはどれか。",
+                "options": [
+                    { "text": "平行線路は、外部空間への電磁波の放射が生じやすい。", "isCorrect": false, "rationale": "これは正しい記述です。構造が開放的であるためです。" },
+                    { "text": "光ファイバケーブルは、電磁誘導の影響を受けにくい。", "isCorrect": false, "rationale": "これは正しい記述です。光信号を使用するためです。" },
+                    { "text": "同軸ケーブルの特性インピーダンスは、内部導体の外径と外部導体の内径の比で変化する。", "isCorrect": false, "rationale": "これは正しい記述です。" },
+                    { "text": "特性インピーダンスが異なるケーブルを接続しても、信号は反射しない。", "isCorrect": true, "rationale": "これは誤りです。特性インピーダンスが異なると（不整合）、接続点で反射が発生します。" }
+                ]
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "同軸ケーブル「5C-2V」の「外部導体（編組）」の主な役割は何か。",
+                "options": [
+                    { "text": "信号を流す。", "isCorrect": false, "rationale": "信号を流す主な役割は中心導体です。外部導体は信号の戻り路（GND）とシールドの役割を持ちます。" },
+                    { "text": "中心導体を絶縁する。", "isCorrect": false, "rationale": "絶縁するのは内部絶縁体（「2」が示すポリエチレン）です。" },
+                    { "text": "外からのノイズを防ぐ（シールド）。", "isCorrect": true, "rationale": "外部導体は、信号の基準電位（GND）となると同時に、外部からのノイズを遮断するシールドの役割を果たします。" },
+                    { "text": "ケーブルの絶縁体を発泡させる。", "isCorrect": false, "rationale": "これは製造時の話であり、ケーブルの機能ではありません。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "同軸ケーブルの記号で、外部導体が編組のみ3重であることを示す記号は [　] です。",
+                "correctAnswers": ["T", "t"],
+                "rationale": "「V」が一重編組、「W」が二重編組、「T」が三重編組を示します。"
+            },
+            {
+                "questionType": "multiple-choice",
+                "questionText": "「S-5C-FV」の「F」が示すものは何か。",
+                "options": [
+                    { "text": "特性インピーダンスが50Ωである。", "isCorrect": false, "rationale": "特性インピーダンス50Ωは「D」です。" },
+                    { "text": "絶縁体が発泡ポリエチレンである。", "isCorrect": true, "rationale": "「F」は絶縁体が発泡ポリエチレン (Foam) であることを示します。" },
+                    { "text": "外部導体がアルミ箔である。", "isCorrect": false, "rationale": "「FV」の「V」は編組を示します。「F」はここでは絶縁体の記号です。" },
+                    { "text": "周波数(Frequency)特性が良い。", "isCorrect": false, "rationale": "これは規格記号の直接の意味ではありません。" }
+                ]
+            },
+            {
+                "questionType": "fill-in",
+                "questionText": "LANケーブルの「STP」とは、[　] Twisted Pair の略である。",
+                "correctAnswers": ["Shielded", "shielded", "シールデッド"],
+                "rationale": "STPは「Shielded (シールドされた)」 Twisted Pairの略です。"
+            }
+        ];
+
+        /**
+         * 簡易LaTeXレンダリング関数
+         * @param {string} text - 変換するテキスト
+         * @returns {string} - 変換後のHTML文字列
+         */
+        function renderLatex(text) {
+            if (typeof text !== 'string') return '';
+            // 内部の$...$を先に処理
+            let processedText = text.replace(/\$(.*?)\$/g, (match, content) => {
+                return content
+                    .replace(/\\lambda/g, 'λ')
+                    .replace(/\\pi/g, 'π')
+                    .replace(/\\times/g, '×');
+            });
+            
+            // $...$の外にあるものも念のため処理（ただし、通常は$で囲まれている想定）
+            return processedText
+                .replace(/\\lambda/g, 'λ')
+                .replace(/\\pi/g, 'π')
+                .replace(/\\times/g, '×')
+                .replace(/\$/g, ''); // 最終的に残った$も除去
+        }
+
+        /**
+         * テストページを初期化する関数
+         */
+        function initTest() {
+            const container = document.getElementById('quiz-container');
+            if (!container) return;
+
+            testQuestions.forEach((q, index) => {
+                const questionIndex = index + 1;
+                
+                const questionCard = document.createElement('div');
+                questionCard.id = `question-card-${index}`;
+                questionCard.className = 'bg-white p-6 rounded-lg shadow-md mb-4 border-2 border-transparent transition-colors duration-300';
+
+                // 質問文
+                const questionText = document.createElement('p');
+                questionText.className = 'text-lg font-semibold mb-4';
+                questionText.innerHTML = `<strong>問${questionIndex}:</strong> ${renderLatex(q.questionText)}`;
+                questionCard.appendChild(questionText);
+
+                // 解答欄 (4択または記入式)
+                const answerArea = document.createElement('div');
+                answerArea.className = 'space-y-3';
+
+                if (q.questionType === 'multiple-choice') {
+                    q.options.forEach((opt) => {
+                        const optionLabel = document.createElement('label');
+                        optionLabel.className = 'block p-3 rounded-lg border border-gray-300 cursor-pointer hover:bg-gray-50';
+                        
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `question-${index}`;
+                        radio.value = renderLatex(opt.text);
+                        radio.className = 'mr-3';
+                        
+                        optionLabel.appendChild(radio);
+                        optionLabel.appendChild(document.createTextNode(renderLatex(opt.text)));
+                        answerArea.appendChild(optionLabel);
+                    });
+                } else if (q.questionType === 'fill-in') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `question-input-${index}`;
+                    input.className = 'w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500';
+                    input.placeholder = '解答を入力してください';
+                    answerArea.appendChild(input);
+                }
+                questionCard.appendChild(answerArea);
+
+                // 解答表示エリア (最初は非表示)
+                const resultDiv = document.createElement('div');
+                resultDiv.id = `result-div-${index}`;
+                resultDiv.className = 'hidden mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm';
+                questionCard.appendChild(resultDiv);
+
+                container.appendChild(questionCard);
+            });
+        }
+
+        /**
+         * 採点処理を行う関数
+         */
+        function gradeTest() {
+            let score = 0;
+            
+            testQuestions.forEach((q, index) => {
+                const card = document.getElementById(`question-card-${index}`);
+                const resultDiv = document.getElementById(`result-div-${index}`);
+                let isCorrect = false;
+
+                // スタイルと結果をリセット
+                card.classList.remove('border-green-500', 'border-red-500');
+                resultDiv.innerHTML = '';
+
+                if (q.questionType === 'multiple-choice') {
+                    const selectedRadio = document.querySelector(`input[name="question-${index}"]:checked`);
+                    const correctAnswerText = renderLatex(q.options.find(opt => opt.isCorrect).text);
+                    
+                    if (selectedRadio && selectedRadio.value === correctAnswerText) {
+                        isCorrect = true;
+                    }
+                    resultDiv.innerHTML = `<strong class="font-bold">正解:</strong> ${correctAnswerText}`;
+
+                } else if (q.questionType === 'fill-in') {
+                    const userInput = document.getElementById(`question-input-${index}`).value.trim();
+                    const correctKeywords = q.correctAnswers.map(renderLatex);
+                    
+                    if (userInput) {
+                        // ユーザーの入力が、正解キーワードのいずれかを含んでいれば正解
+                        isCorrect = correctKeywords.some(keyword => userInput.includes(keyword));
+                    }
+                    resultDiv.innerHTML = `<strong class="font-bold">正解キーワード:</strong> ${correctKeywords.join(', ')}`;
+                }
+
+                // スコア加算とスタイル適用
+                if (isCorrect) {
+                    score++;
+                    card.classList.add('border-green-500');
+                } else {
+                    card.classList.add('border-red-500');
+                }
+                resultDiv.classList.remove('hidden');
+            });
+
+            // 合計スコアを表示
+            const scoreContainer = document.getElementById('score-container');
+            scoreContainer.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <h2 class="text-2xl font-bold text-gray-800">あなたのスコア: ${score} / ${testQuestions.length} 点</h2>
+                </div>
+            `;
+            // スコア表示位置までスクロール
+            scoreContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // DOM読み込み完了時にクイズを初期化
+        document.addEventListener('DOMContentLoaded', initTest);
+
+        // 採点ボタンにイベントリスナーを追加
+        document.getElementById('submit-btn').addEventListener('click', gradeTest);
+    </script>
+</body>
+</html>
